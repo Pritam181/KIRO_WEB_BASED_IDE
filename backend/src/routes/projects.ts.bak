@@ -1,0 +1,223 @@
+import express, { Request, Response } from 'express';
+import { projectService } from '../services/projectService';
+import { requireAuth } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
+import { createProjectSchema, updateProjectSchema, shareProjectSchema } from '../validation/projectValidation';
+import { User } from '../types/user';
+
+interface AuthenticatedRequest extends Request {
+  user?: User;
+}
+
+const router = express.Router();
+
+// Apply authentication middleware to all routes
+router.use(requireAuth);
+
+// GET /api/projects - List user's projects
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projects = await projectService.listUserProjects(userId);
+    
+    res.json({
+      success: true,
+      data: projects
+    });
+  } catch (error) {
+    console.error('Error listing projects:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list projects'
+    });
+  }
+});
+
+// POST /api/projects - Create new project
+router.post('/', validateRequest(createProjectSchema), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectData = req.body;
+    
+    const project = await projectService.createProject(userId, projectData);
+    
+    res.status(201).json({
+      success: true,
+      data: project,
+      message: 'Project created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create project'
+    });
+  }
+});
+
+// GET /api/projects/:id - Get specific project
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    
+    const project = await projectService.getProject(projectId, userId);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found or access denied'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: project
+    });
+  } catch (error) {
+    console.error('Error getting project:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get project'
+    });
+  }
+});
+
+// PUT /api/projects/:id - Update project
+router.put('/:id', validateRequest(updateProjectSchema), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    const updates = req.body;
+    
+    const project = await projectService.updateProject(projectId, userId, updates);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found or access denied'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: project,
+      message: 'Project updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update project'
+    });
+  }
+});
+
+// DELETE /api/projects/:id - Delete project
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    
+    const success = await projectService.deleteProject(projectId, userId);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found or access denied'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Project deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete project'
+    });
+  }
+});
+
+// POST /api/projects/:id/share - Share project with collaborator
+router.post('/:id/share', validateRequest(shareProjectSchema), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    const shareRequest = req.body;
+    
+    const success = await projectService.shareProject(projectId, userId, shareRequest);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found or access denied'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Project shared successfully'
+    });
+  } catch (error) {
+    console.error('Error sharing project:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to share project'
+    });
+  }
+});
+
+// DELETE /api/projects/:id/collaborators/:collaboratorId - Remove collaborator
+router.delete('/:id/collaborators/:collaboratorId', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    const collaboratorId = req.params.collaboratorId;
+    
+    const success = await projectService.removeCollaborator(projectId, userId, collaboratorId);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found or access denied'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Collaborator removed successfully'
+    });
+  } catch (error) {
+    console.error('Error removing collaborator:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove collaborator'
+    });
+  }
+});
+
+// GET /api/projects/:id/collaborators - Get project collaborators
+router.get('/:id/collaborators', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const projectId = req.params.id;
+    
+    const collaborators = await projectService.getProjectCollaborators(projectId, userId);
+    
+    res.json({
+      success: true,
+      data: collaborators
+    });
+  } catch (error) {
+    console.error('Error getting collaborators:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get collaborators'
+    });
+  }
+});
+
+export default router;
