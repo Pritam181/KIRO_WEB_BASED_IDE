@@ -1,0 +1,245 @@
+/* Collaborative Editor Styles */
+
+/* Remote user cursor line */
+.collaborative-cursor-line {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background-color: var(--cursor-color, #FF6B6B);
+  animation: cursor-blink 1s infinite;
+  z-index: 1000;
+}
+
+/* Remote user cursor label */
+.collaborative-cursor-name {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background-color: var(--cursor-color, #FF6B6B);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1001;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Remote user selection */
+.collaborative-selection {
+  background-color: var(--selection-color, rgba(255, 107, 107, 0.2));
+  border: 1px solid var(--cursor-color, #FF6B6B);
+  border-radius: 2px;
+}
+
+/* Cursor blinking animation */
+@keyframes cursor-blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0.3;
+  }
+}
+
+/* User presence indicators */
+.user-presence-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.user-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.user-avatar.typing {
+  animation: typing-pulse 1.5s ease-in-out infinite;
+}
+
+.user-avatar-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: #1f2937;
+  color: white;
+  font-size: 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 1000;
+}
+
+.user-avatar:hover .user-avatar-tooltip {
+  opacity: 1;
+}
+
+/* Typing indicator animation */
+@keyframes typing-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Activity feed styles */
+.activity-feed {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.activity-item.recent {
+  color: #374151;
+  font-weight: 500;
+}
+
+.activity-timestamp {
+  margin-left: auto;
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+/* Conflict resolution styles */
+.conflict-indicator {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #92400e;
+  animation: conflict-pulse 2s ease-in-out infinite;
+}
+
+@keyframes conflict-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.conflict-resolution-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  z-index: 2000;
+}
+
+.conflict-resolution-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-presence-container {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  
+  .user-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+  }
+  
+  .collaborative-cursor-name {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+  
+  .conflict-resolution-dialog {
+    padding: 16px;
+    margin: 16px;
+    width: calc(100% - 32px);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .user-presence-container {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: #374151;
+  }
+  
+  .activity-feed {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .activity-item {
+    color: #9ca3af;
+  }
+  
+  .activity-item.recent {
+    color: #d1d5db;
+  }
+  
+  .conflict-resolution-dialog {
+    background: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+}
