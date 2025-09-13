@@ -1,4 +1,5 @@
 import express from 'express'
+import { createServer } from 'http'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
@@ -9,14 +10,18 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler'
 import { createRateLimit } from './middleware/rateLimiter'
 import authRoutes from './routes/auth'
 import fileRoutes from './routes/files'
+import aiRoutes from './routes/ai'
+import githubRoutes from './routes/github'
 // import projectRoutes from './routes/projects'
 import { fileService } from './services/fileService'
+import { socketService } from './services/socketService'
 // import { projectService } from './services/projectService'
 
 // Validate configuration
 validateConfig()
 
 const app = express()
+const httpServer = createServer(app)
 
 // Security middleware
 app.use(helmet({
@@ -84,7 +89,11 @@ app.get('/api/status', (_req, res) => {
   res.json({ 
     message: 'Kiro Web API is running',
     environment: config.nodeEnv,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    websocket: {
+      connectedUsers: socketService.getConnectedUsersCount(),
+      activeProjects: socketService.getActiveProjectsCount()
+    }
   })
 })
 
@@ -93,6 +102,12 @@ app.use('/auth', authRoutes)
 
 // File management routes
 app.use('/api/files', fileRoutes)
+
+// AI assistant routes
+app.use('/api/ai', aiRoutes)
+
+// GitHub integration routes
+app.use('/api/github', githubRoutes)
 
 // Project management routes (temporarily disabled for demo)
 // app.use('/api/projects', projectRoutes)
@@ -112,11 +127,14 @@ process.on('SIGINT', () => {
   process.exit(0)
 })
 
-app.listen(config.port, async () => {
+httpServer.listen(config.port, async () => {
   // Initialize services
   try {
     await fileService.initialize()
     console.log('📁 File service initialized')
+    
+    // Initialize Socket.io
+    socketService.initialize(httpServer)
     
     // await projectService.initialize()
     // console.log('📁 Project service initialized')

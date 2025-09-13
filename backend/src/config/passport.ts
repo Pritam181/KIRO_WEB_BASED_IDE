@@ -25,8 +25,8 @@ if (config.github.clientId && config.github.clientSecret) {
     clientID: config.github.clientId,
     clientSecret: config.github.clientSecret,
     callbackURL: config.github.callbackUrl,
-    scope: ['user:email']
-  }, async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
+    scope: ['user:email', 'repo']
+  }, async (accessToken: string, _refreshToken: string, profile: any, done: any) => {
     try {
       // Transform GitHub profile to our format
       const githubProfile: GitHubProfile = {
@@ -48,6 +48,10 @@ if (config.github.clientId && config.github.clientSecret) {
         // Create new user
         user = await UserService.createFromGitHub(githubProfile);
       }
+
+      // Store the access token in the user object for this session
+      // In production, you should encrypt and store this securely
+      (user as any).githubAccessToken = accessToken;
 
       return done(null, user);
     } catch (error) {
